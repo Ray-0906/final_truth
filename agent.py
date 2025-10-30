@@ -34,8 +34,16 @@ Pass the user's claim as the request parameter.
 **Step 3: Generate Report**
 After all lanes complete, call FinalReportAgent to generate the final report.
 
-**Step 4: Return Result**
-The final report will be automatically returned from session state.
+**Step 4: Return the Final Report**
+After FinalReportAgent completes, it will have stored the full report in session state.
+Your final response should be ONLY the complete report that FinalReportAgent generated.
+Do not add any commentary - just output the report verbatim.
+
+**CRITICAL:**
+- Call NewsCheckAgent, FactCheckAgent, and ScamCheckAgent (as needed)
+- Then call FinalReportAgent
+- FinalReportAgent will return a complete formatted report
+- Return that report exactly as-is, nothing more
 
 **Guidelines:**
 - Only call each lane once per request
@@ -50,7 +58,6 @@ The final report will be automatically returned from session state.
         AgentTool(final_report_agent),
     ],
     sub_agents=[news_lane, fact_lane, scam_lane, final_report_agent],
-    output_key=STATE_KEYS.FINAL_REPORT,
 )
 
 
