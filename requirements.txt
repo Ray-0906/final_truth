@@ -1,0 +1,11 @@
+# Core ADK dependency
+google-adk>=1.0.0
+
+# HTTP client
+requests>=2.31.0
+
+# Environment configuration
+python-dotenv>=1.0.0
+
+# Type hints (Python 3.9 compatibility)
+typing-extensions>=4.5.0
