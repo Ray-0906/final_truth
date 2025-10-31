@@ -1,63 +1,52 @@
 """Root agent orchestrating news, fact, and scam verification lanes."""
 
-from __future__ import annotations
-
 from google.adk.agents import LlmAgent
-from google.adk.tools.agent_tool import AgentTool
 
-from .config import MODEL, STATE_KEYS
+from .config import MODEL
 from .lanes import news_lane, fact_lane, scam_lane
-from .reporting import final_report_agent
 
 
-# Root agent that routes to verification lanes
+# Root agent that routes to verification lanes using transfer_to_agent
 root_agent = LlmAgent(
     name="NewsInfoVerificationRouter",
     model=MODEL,
     description="Intelligent router that triages content for news, fact, and scam verification.",
-    instruction="""You are a content verification router. For each user submission:
+    instruction="""You are an AI content verification router with access to three specialized verification agents.
 
-**Step 1: Classification**
-Determine which verification types apply:
-- 'news': Claims about current events, breaking news, or media coverage
-- 'fact': Factual assertions that need validation
-- 'scam': Messages with URLs, payment requests, or suspicious content
+**YOUR RESOURCES:**
+You have access to these verification agents:
+- NewsCheckAgent: Verifies current events by checking news APIs, fact-check databases, and web research
+- FactCheckAgent: Verifies general factual claims through fact-check registries and research
+- ScamCheckAgent: Detects scams by analyzing URLs, known patterns, and manipulation tactics
 
-**Step 2: Route to Lanes**
-For each applicable type, call the corresponding agent:
-- NewsCheckAgent: For news verification
-- FactCheckAgent: For fact checking
-- ScamCheckAgent: For scam detection
+**YOUR TASK:**
+1. Classify the user's claim into ONE category (news/scam/fact)
+2. Transfer to the corresponding agent using transfer_to_agent function
+3. That agent will handle the verification and return the final report
 
-Pass the user's claim as the request parameter.
+**CLASSIFICATION:**
+- **News** (time-sensitive events) → Transfer to NewsCheckAgent
+  Examples: "Cyclone hit Andhra Pradesh", "Celebrity died yesterday"
+  
+- **Scam** (URLs, money requests) → Transfer to ScamCheckAgent  
+  Examples: "Click here to claim prize", "Send money to unlock account"
+  
+- **Fact** (general claims) → Transfer to FactCheckAgent
+  Examples: "Earth is flat", "Vaccines cause autism", "Historical events"
 
-**Step 3: Generate Report**
-After all lanes complete, call FinalReportAgent to generate the final report.
+**EXECUTION:**
+1. Read the user's claim
+2. Determine the best category
+3. Call transfer_to_agent with agent_name='NewsCheckAgent', 'FactCheckAgent', or 'ScamCheckAgent'
+4. The transfer is permanent - control goes to that agent and does NOT return
 
-**Step 4: Return the Final Report**
-After FinalReportAgent completes, it will have stored the full report in session state.
-Your final response should be ONLY the complete report that FinalReportAgent generated.
-Do not add any commentary - just output the report verbatim.
-
-**CRITICAL:**
-- Call NewsCheckAgent, FactCheckAgent, and ScamCheckAgent (as needed)
-- Then call FinalReportAgent
-- FinalReportAgent will return a complete formatted report
-- Return that report exactly as-is, nothing more
-
-**Guidelines:**
-- Only call each lane once per request
-- Don't invent data - rely on tool outputs
-- Surface errors transparently
-- Document skipped lanes with reasoning
+**IMPORTANT:**
+- Use transfer_to_agent, NOT the direct agent tools
+- Transfer happens ONCE - you will not regain control
+- The target agent will provide the final verification report
+- If ambiguous, prioritize: scam > news > fact (highest risk first)
 """,
-    tools=[
-        AgentTool(news_lane),
-        AgentTool(fact_lane),
-        AgentTool(scam_lane),
-        AgentTool(final_report_agent),
-    ],
-    sub_agents=[news_lane, fact_lane, scam_lane, final_report_agent],
+    sub_agents=[news_lane, fact_lane, scam_lane],
 )
 
 
