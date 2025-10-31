@@ -37,13 +37,16 @@ You have access to these verification agents:
 **EXECUTION:**
 1. Read the user's claim
 2. Determine the best category
-3. Call transfer_to_agent with agent_name='NewsCheckAgent', 'FactCheckAgent', or 'ScamCheckAgent'
+3. **IMMEDIATELY CALL** transfer_to_agent with the appropriate agent_name
 4. The transfer is permanent - control goes to that agent and does NOT return
 
-**IMPORTANT:**
-- Use transfer_to_agent, NOT the direct agent tools
+**CRITICAL REQUIREMENTS:**
+- You MUST use the transfer_to_agent FUNCTION CALL (not text output)
+- Example: To verify a fact claim, you must invoke the function with parameter agent_name='FactCheckAgent'
+- Do NOT output text descriptions of what to do
+- Do NOT explain your reasoning
+- ONLY make the function call
 - Transfer happens ONCE - you will not regain control
-- The target agent will provide the final verification report
 - If ambiguous, prioritize: scam > news > fact (highest risk first)
 """,
     sub_agents=[news_lane, fact_lane, scam_lane],

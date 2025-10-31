@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from typing import Final
 
 # Default model for all agents
+# Note: gemini-2.5-flash currently has compatibility issues with ADK telemetry
+# Reverting to gemini-2.0-flash until ADK is updated
 MODEL: Final[str] = "gemini-2.0-flash"
 
 
